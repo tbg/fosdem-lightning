@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <title></title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="reveal.js/css/reveal.min.css"/>
+    <style type="text/css">code{white-space: pre;}</style>
+    <link rel="stylesheet" href="reveal.js/css/theme/simple.css" id="theme">
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+      if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+      }
+    </script>
+    <!--[if lt IE 9]>
+    <script src="reveal.js/lib/js/html5shiv.js"></script>
+    <![endif]-->
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+
+<section id="cockroach" class="slide level1">
+<h1>Cockroach</h1>
+<h2 id="a-scalable-geo-replicated-transactional-datastore">A Scalable, Geo-Replicated, Transactional Datastore</h2>
+</section>
+<section class="slide level1">
+
+<h2 id="what-kind-of-datastore">What kind of datastore?</h2>
+<ul>
+<li>currently a sorted key-value store, but:</li>
+<li>structured and SQL-like layers are coming</li>
+<li>in the end, it should feel like a SQL database (unless you want the lower layers!) with indexes, joins and more</li>
+<li>written in <a href="http://golang.org">Go</a></li>
+</ul>
+<h2 id="scalable-geo-replicated-transactional">Scalable, Geo-Replicated, Transactional</h2>
+</section>
+<section id="section" class="slide level1">
+<h1>???</h1>
+</section>
+<section id="scalable" class="slide level1">
+<h1>Scalable</h1>
+<ul>
+<li>new nodes can easily be added to the database</li>
+<li>they automatically assume their share of load and data.</li>
+<li>agnostic apps: access all data through every node</li>
+<li>scale linearly up to 10^18 bytes (theoretically)</li>
+</ul>
+</section>
+<section id="geo-replicated" class="slide level1">
+<h1>Geo-Replicated</h1>
+<ul>
+<li>each piece of data is stored on more than one node</li>
+<li>data is kept synchronous (consensus protocol: Raft)</li>
+<li>normal operation unless majority of replicas offline</li>
+<li>highly available</li>
+</ul>
+</section>
+<section id="transactional" class="slide level1">
+<h1>Transactional</h1>
+<h2 id="separates-cockroach-from-nosql">separates Cockroach from NoSQL:</h2>
+<p>Consistent &amp; Highly Available is <em>difficult</em>:</p>
+<ul>
+<li>apps can do it, but it is very hard (think: encryption)</li>
+<li>the database should do this once, correctly</li>
+<li>the cost is consensus latency</li>
+<li>CockroachDB has transactions that fully deserve the name</li>
+</ul>
+</section>
+<section class="slide level1">
+
+<pre><code>opts := client.TransactionOptions{Name: &quot;example put&quot;}
+c.RunTransaction(&amp;opts, func(txn *client.KV) error {
+  // serializable context!
+  gr := proto.GetResponse{}
+  txn.Call(proto.Get,
+           proto.GetArgs(proto.Key(&quot;key1&quot;)), &amp;gr)
+  txn.Call(proto.Put,
+           proto.PutArgs(proto.Key(&quot;key2&quot;),
+             append(gr.Value.Bytes, []byte(&quot;-new&quot;))),
+           &amp;proto.PutResponse{})
+  return nil
+})</code></pre>
+</section>
+<section id="why" class="slide level1">
+<h1>Why</h1>
+</section>
+<section class="slide level1">
+
+<h2 id="history">History</h2>
+<ul>
+<li>SQL &quot;not&quot; scalable or highly available, but transactional</li>
+<li>PostgreSQL, MySQL, Oracle, DB2, ...</li>
+<li>NoSQL scalable and highly available, but not consistent</li>
+<li>BigTable, Cassandra, ...</li>
+<li>NewSQL scalable, highly available, transactions</li>
+<li>Spanner, CockroachDB, ...</li>
+</ul>
+<h2 id="history-at-google">History at Google</h2>
+<ul>
+<li>2004: BigTable</li>
+<li>2006: Megastore (on top of BigTable)</li>
+<li>transactional (but slow and complex)</li>
+<li>2012: Spanner</li>
+<li>fully linearizable (hence consistent)</li>
+</ul>
+</section>
+<section class="slide level1">
+
+<blockquote>
+<p>“We believe it is better to have application programmers deal with performance problems due to overuse of transactions as bottlenecks arise, rather than always coding around the lack of transactions.”</p>
+</blockquote>
+<p>Corbett et al., Spanner paper, 2012</p>
+</section>
+<section class="slide level1">
+
+<h2 id="google-spanner">Google Spanner</h2>
+<p>is basically what you would get if SQL and NoSQL had a designer baby that combined both their advantages: scalable, highly available, transactional</p>
+<h2 id="but...">but...</h2>
+<ul>
+<li>only Google can have it</li>
+<li>hardware: atomic clocks, GPS receivers</li>
+<li>inhomogeneous infrastructure: TrueTime API, Chubby, Collossus, ...</li>
+</ul>
+<h2 id="we-want-you">We want you</h2>
+<ul>
+<li>to have something like Spanner</li>
+<li>platform semirelational database</li>
+<li>fault-tolerant, transactional, scalable, fast (enough)</li>
+<li>but simpler than Spanner</li>
+<li>simple homogenous infrastructure</li>
+<li>no hardware requirements</li>
+<li>and OpenSource</li>
+<li>this stuff is hard - trust nobody</li>
+<li>see: <a href="https://github.com/aphyr/jepsen">Jepsen series</a></li>
+</ul>
+</section>
+<section id="how" class="slide level1">
+<h1>How?</h1>
+</section>
+<section class="slide level1">
+
+<figure>
+<img src="images/arch.png" title="Architecture" alt="Cockroach Architecture" /><figcaption>Cockroach Architecture</figcaption>
+</figure>
+</section>
+<section class="slide level1">
+
+<figure>
+<img src="images/range.png" title="Ranges" alt="Cockroach Ranges" /><figcaption>Cockroach Ranges</figcaption>
+</figure>
+</section>
+<section class="slide level1">
+
+<h2 id="distributed-transactions">Distributed Transactions</h2>
+<ul>
+<li>lock free</li>
+<li>serializable snapshot isolation semantics</li>
+<li>transactions logically don't overlap</li>
+<li>transaction restarts are expected (and normal)</li>
+<li>linearizability for common cases</li>
+<li>a rare concern in practice</li>
+<li>can enforce for all cases when time signal is good</li>
+</ul>
+</section>
+<section class="slide level1">
+
+<h2 id="under-the-hood">Under The Hood</h2>
+<ul>
+<li>variation of two phase commit</li>
+<li>txn writes stored as MVCC “intents”</li>
+<li>central transaction table:</li>
+<li>single key/txn: status, timestamp, priority, ...</li>
+<li>modified by concurrent txns - first writer wins</li>
+<li>the single source of truth</li>
+<li>2nd phase more efficient -- 1 write to transaction table entry</li>
+<li>intents resolved after commit - correctness doesn't need it!</li>
+</ul>
+</section>
+<section id="who" class="slide level1">
+<h1>Who?</h1>
+<ul>
+<li>most early core members ex-Googlers and based in NYC</li>
+<li>notably <a href="https://github.com/spencerkimball">Spencer Kimball</a>, author of original design documents and majority of the code</li>
+<li>Andy Kimball, Andrew Bonventre, Shawn Morel, Peter Mattis, Ben Darnell, Harshit Chopra, Levon Lloyd, Manik Surtani, Tobias Schottdorf, Matt Tracy, Zach Brock, Matthew O'Connor, Tyler Neely, Brad Seiler, Joy Tao, Jiajia Han, jqmp, jiangmingyang, Kathy Spradlin, Piotr Zurek, strangemonad, Bram Gruneir, Paul Banks, James Graves, joezxy, Nick Gottlieb</li>
+<li>... and perhaps you? Lots to do, and it's fun</li>
+</ul>
+</section>
+<section id="summary" class="slide level1">
+<h1>Summary</h1>
+<ul>
+<li>beta: transactional, scalable, replicated key-value store</li>
+<li>later: structured data + SQL, online migrations, ...</li>
+<li>inspired by Spanner, but for all of us</li>
+<li>simple deploy, minimal configuration</li>
+<li>(Fast!) Transactions+HA - why settle for low consistency?</li>
+<li>Open Source (duh) - Apache licensed</li>
+<li>https://github.com/cockroachdb/cockroach - PR's welcome!</li>
+<li>cockroach-db@googlegroups.com</li>
+<li>#cockroachdb on Freenode IRC</li>
+<li>design docs: http://goo.gl/0pTVNM</li>
+</ul>
+</section>
+    </div>
+  </div>
+
+
+  <script src="reveal.js/lib/js/head.min.js"></script>
+  <script src="reveal.js/js/reveal.min.js"></script>
+
+  <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+        theme: 'sky', // available themes are in /css/theme
+        transition: 'fade', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+          { src: 'reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+//          { src: 'reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; }, }
+//          { src: 'reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+]});
+    </script>
+    </body>
+</html>
