@@ -32,9 +32,7 @@
 <section id="cockroach" class="slide level1">
 <h1>Cockroach</h1>
 <h2 id="a-scalable-geo-replicated-transactional-datastore">A Scalable, Geo-Replicated, Transactional Datastore</h2>
-</section>
-<section class="slide level1">
-
+<p>--</p>
 <h2 id="what-kind-of-datastore">What kind of datastore?</h2>
 <ul>
 <li>currently a sorted key-value store, but:</li>
@@ -42,10 +40,12 @@
 <li>in the end, it should feel like a SQL database (unless you want the lower layers!) with indexes, joins and more</li>
 <li>written in <a href="http://golang.org">Go</a></li>
 </ul>
+<p>--</p>
 <h2 id="scalable-geo-replicated-transactional">Scalable, Geo-Replicated, Transactional</h2>
 </section>
 <section id="section" class="slide level1">
 <h1>???</h1>
+<p>--</p>
 </section>
 <section id="scalable" class="slide level1">
 <h1>Scalable</h1>
@@ -55,6 +55,7 @@
 <li>agnostic apps: access all data through every node</li>
 <li>scale linearly up to 10^18 bytes (theoretically)</li>
 </ul>
+<p>--</p>
 </section>
 <section id="geo-replicated" class="slide level1">
 <h1>Geo-Replicated</h1>
@@ -64,6 +65,7 @@
 <li>normal operation unless majority of replicas offline</li>
 <li>highly available</li>
 </ul>
+<p>--</p>
 </section>
 <section id="transactional" class="slide level1">
 <h1>Transactional</h1>
@@ -75,9 +77,7 @@
 <li>the cost is consensus latency</li>
 <li>CockroachDB has transactions that fully deserve the name</li>
 </ul>
-</section>
-<section class="slide level1">
-
+<p>--</p>
 <pre><code>opts := client.TransactionOptions{Name: &quot;example put&quot;}
 c.RunTransaction(&amp;opts, func(txn *client.KV) error {
   // serializable context!
@@ -93,18 +93,17 @@ c.RunTransaction(&amp;opts, func(txn *client.KV) error {
 </section>
 <section id="why" class="slide level1">
 <h1>Why</h1>
-</section>
-<section class="slide level1">
-
+<p>--</p>
 <h2 id="history">History</h2>
 <ul>
 <li>SQL &quot;not&quot; scalable or highly available, but transactional</li>
 <li>PostgreSQL, MySQL, Oracle, DB2, ...</li>
-<li>NoSQL scalable and highly available, but not consistent</li>
+<li>NoSQL scalable and highly available, but not transactional</li>
 <li>BigTable, Cassandra, ...</li>
 <li>NewSQL scalable, highly available, transactions</li>
 <li>Spanner, CockroachDB, ...</li>
 </ul>
+<p>--</p>
 <h2 id="history-at-google">History at Google</h2>
 <ul>
 <li>2004: BigTable</li>
@@ -113,24 +112,22 @@ c.RunTransaction(&amp;opts, func(txn *client.KV) error {
 <li>2012: Spanner</li>
 <li>fully linearizable (hence consistent)</li>
 </ul>
-</section>
-<section class="slide level1">
-
+<p>--</p>
 <blockquote>
 <p>“We believe it is better to have application programmers deal with performance problems due to overuse of transactions as bottlenecks arise, rather than always coding around the lack of transactions.”</p>
 </blockquote>
 <p>Corbett et al., Spanner paper, 2012</p>
-</section>
-<section class="slide level1">
-
+<p>--</p>
 <h2 id="google-spanner">Google Spanner</h2>
-<p>is basically what you would get if SQL and NoSQL had a designer baby that combined both their advantages: scalable, highly available, transactional</p>
+<p>is basically what you would get if SQL and NoSQL had a designer baby that combined both their advantages: : - scalable, - highly available, - transactional.</p>
+<p>--</p>
 <h2 id="but...">but...</h2>
 <ul>
 <li>only Google can have it</li>
 <li>hardware: atomic clocks, GPS receivers</li>
 <li>inhomogeneous infrastructure: TrueTime API, Chubby, Collossus, ...</li>
 </ul>
+<p>--</p>
 <h2 id="we-want-you">We want you</h2>
 <ul>
 <li>to have something like Spanner</li>
@@ -146,21 +143,15 @@ c.RunTransaction(&amp;opts, func(txn *client.KV) error {
 </section>
 <section id="how" class="slide level1">
 <h1>How?</h1>
-</section>
-<section class="slide level1">
-
+<p>--</p>
 <figure>
 <img src="images/arch.png" title="Architecture" alt="Cockroach Architecture" /><figcaption>Cockroach Architecture</figcaption>
 </figure>
-</section>
-<section class="slide level1">
-
+<p>--</p>
 <figure>
 <img src="images/range.png" title="Ranges" alt="Cockroach Ranges" /><figcaption>Cockroach Ranges</figcaption>
 </figure>
-</section>
-<section class="slide level1">
-
+<p>--</p>
 <h2 id="distributed-transactions">Distributed Transactions</h2>
 <ul>
 <li>lock free</li>
@@ -171,9 +162,7 @@ c.RunTransaction(&amp;opts, func(txn *client.KV) error {
 <li>a rare concern in practice</li>
 <li>can enforce for all cases when time signal is good</li>
 </ul>
-</section>
-<section class="slide level1">
-
+<p>--</p>
 <h2 id="under-the-hood">Under The Hood</h2>
 <ul>
 <li>variation of two phase commit</li>
@@ -188,6 +177,7 @@ c.RunTransaction(&amp;opts, func(txn *client.KV) error {
 </section>
 <section id="who" class="slide level1">
 <h1>Who?</h1>
+<p>--</p>
 <ul>
 <li>most early core members ex-Googlers and based in NYC</li>
 <li>notably <a href="https://github.com/spencerkimball">Spencer Kimball</a>, author of original design documents and majority of the code</li>
@@ -195,8 +185,10 @@ c.RunTransaction(&amp;opts, func(txn *client.KV) error {
 <li>... and perhaps you? Lots to do, and it's fun</li>
 </ul>
 </section>
-<section id="summary" class="slide level1">
-<h1>Summary</h1>
+<section id="wrap-up" class="slide level1">
+<h1>Wrap-Up</h1>
+<p>--</p>
+<h2 id="thank-you">Thank you</h2>
 <ul>
 <li>beta: transactional, scalable, replicated key-value store</li>
 <li>later: structured data + SQL, online migrations, ...</li>
