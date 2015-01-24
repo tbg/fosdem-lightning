@@ -1,16 +1,6 @@
 # Cockroach
 
-## A Scalable, Geo-Replicated, Transactional Datastore
-
---
-
-## What kind of datastore?
-
-* currently a sorted key-value store, but:
-* structured and SQL-like layers are coming
-* in the end, it should feel like a SQL database (unless you want the lower
-layers!) with indexes, joins and more
-* written in [Go](http://golang.org)
+## A Scalable, Geo-Replicated, Transactional Database
 
 --
 
@@ -21,48 +11,35 @@ layers!) with indexes, joins and more
 --
 
 # Scalable
-* new nodes can easily be added to the database
-* they automatically assume their share of load and data.
-* agnostic apps: access all data through every node
-* scale linearly up to 10^18 bytes (theoretically)
+
+too much data, too much load?
+
+## just fire up another one and relax
 
 --
 
 # Geo-Replicated
-* each piece of data is stored on more than one node
-* data is kept synchronous (consensus protocol: Raft)
-* normal operation unless majority of replicas offline
-  * highly available
+
+node dies or excavator cuts dc power?
+
+## just relax<sup>*</sup>
+
+#### normal operation unless majority of replicas offline
+
+<br />
+<small>\* within reason</small>
 
 --
 
 # Transactional
 
-## separates Cockroach from NoSQL:
+#### separates Cockroach from NoSQL:
 
-Consistent & Highly Available is *difficult*:
+### actual, real transactions
 
-* apps can do it, but it is very hard (think: encryption)
-* the database should do this once, correctly
+* if the db doesn't provide it, your app will have to
+    * it's a bit like doing your own encryption
 * the cost is consensus latency
-* CockroachDB has transactions that fully deserve the name
-
---
-
-```
-opts := client.TransactionOptions{Name: "example put"}
-c.RunTransaction(&opts, func(txn *client.KV) error {
-  // serializable context!
-  gr := proto.GetResponse{}
-  txn.Call(proto.Get,
-           proto.GetArgs(proto.Key("key1")), &gr)
-  txn.Call(proto.Put,
-           proto.PutArgs(proto.Key("key2"),
-             append(gr.Value.Bytes, []byte("-new"))),
-           &proto.PutResponse{})
-  return nil
-})
-```
 
 ---
 
@@ -76,17 +53,18 @@ c.RunTransaction(&opts, func(txn *client.KV) error {
   * PostgreSQL, MySQL, Oracle, DB2, ...
 * NoSQL scalable and highly available, but not transactional
   * BigTable, Cassandra, ...
-* NewSQL scalable, highly available, transactions
+* NewSQL scalable, highly available, transactional
   * Spanner, CockroachDB, ...
 
 --
 
 ## History at Google
 
-* 2004: BigTable
-* 2006: Megastore (on top of BigTable)
+* &lt;2004: SQL (sharding, ...)
+* 2004: NoSQL (BigTable)
+* 2006: (New-ish SQL) Megastore *on top of BigTable*
   * transactional (but slow and complex)
-* 2012: Spanner
+* 2012: Spanner (NewSQL)
   * fully linearizable (hence consistent)
 
 --
@@ -122,6 +100,7 @@ both their advantages:
   * platform semirelational database
   * fault-tolerant, transactional, scalable, fast (enough)
 * but simpler than Spanner
+  * non-locking distributed transactions
   * simple homogenous infrastructure
   * no hardware requirements
 * and OpenSource
@@ -135,34 +114,48 @@ both their advantages:
 
 --
 
+* primarily a **sorted monolithic key-value store**
+* written in [Go](http://golang.org)
+* [RocksDB](http://rocksdb.org) for **storage**
+* [Raft](https://raftconsensus.github.io/) for **consensus & replication**
+* [Hybrid Logical Clock](http://muratbuffalo.blogspot.de/2014/07/hybrid-logical-clocks.html) for **causality**
+* (own) non-locking distributed **transactions**
+
+--
+
 ![Cockroach Architecture](images/arch.png "Architecture")
 
 --
 
-![Cockroach Ranges](images/range.png "Ranges")
-
---
-
 ## Distributed Transactions
-* lock free
-* serializable snapshot isolation semantics
-  * transactions logically don't overlap
-  * transaction restarts are expected (and normal)
-* linearizability for common cases
-  * a rare concern in practice
-  * can enforce for all cases when time signal is good
-
---
-
-## Under The Hood
 * variation of two phase commit
 * txn writes stored as MVCC “intents”
 * central transaction table:
   * single key/txn: status, timestamp, priority, ...
-  * modified by concurrent txns - first writer wins
-  * the single source of truth
-* 2nd phase more efficient -- 1 write to transaction table entry
+  * the single source of truth, atomically updated by txns
+* commit: single write to transaction table entry
 * intents resolved after commit - correctness doesn't need it!
+
+--
+
+```go
+c.RunTransaction(&opts, func(txn *client.KV) error {
+  gr := proto.GetResponse{}
+  // create key in txn table: ("txn1", "pending")
+  // reads key1 as txn1, assume the value is "test"
+  txn.Call(proto.Get,
+           proto.GetArgs(proto.Key("key1")), &gr)
+  // writes ("intent(txn1)", "test-new") to key2
+  txn.Call(proto.Put,
+           proto.PutArgs(proto.Key("key2"),
+             append(gr.Value.Bytes, []byte("-new"))),
+           &proto.PutResponse{})
+  return nil
+  // reads "txn1": still finds "pending" (good!)
+  // writes ("txn1", "committed")
+})
+// writes ("value", "test-new") to key2 (resolve intent)
+```
 
 ---
 
@@ -177,19 +170,10 @@ both their advantages:
 
 ---
 
-# Wrap-Up
+# Thank you
 
---
-
-## Thank you
-
-* beta: transactional, scalable, replicated key-value store
-* later: structured data + SQL, online migrations, ...
-* inspired by Spanner, but for all of us
-* simple deploy, minimal configuration
-* (Fast!) Transactions+HA - why settle for low consistency?
-* Open Source (duh) - Apache licensed
-* https://github.com/cockroachdb/cockroach - PR's welcome!
-* cockroach-db@googlegroups.com
-* \#cockroachdb on Freenode IRC
+* https://github.com/cockroachdb/cockroach
 * design docs: http://goo.gl/0pTVNM
+* Open Source (duh) - Apache licensed
+* [cockroach-db@googlegroups.com](mailto:cockroach-db@googlegroups.com)
+* beta coming soon!
