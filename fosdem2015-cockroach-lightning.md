@@ -1,45 +1,8 @@
 # Cockroach
 
-## A Scalable, Geo-Replicated, Transactional Database
+## A Scalable, Available, Transactional Database
 
---
-
-## Scalable, Geo-Replicated, Transactional
-
-# ???
-
---
-
-# Scalable
-
-too much data, too much load?
-
-## just fire up another one and relax
-
---
-
-# Geo-Replicated
-
-node dies or excavator cuts dc power?
-
-## just relax<sup>*</sup>
-
-#### normal operation unless majority of replicas offline
-
-<br />
-<small>\* within reason</small>
-
---
-
-# Transactional
-
-#### separates Cockroach from NoSQL:
-
-### actual, real transactions
-
-* if the db doesn't provide it, your app will have to
-    * it's a bit like doing your own encryption
-* the cost is consensus latency
+![Cockroach Architecture](images/cockroach.png "Architecture")
 
 ---
 
@@ -47,18 +10,7 @@ node dies or excavator cuts dc power?
 
 --
 
-## History
-
-* SQL "not" scalable or highly available, but transactional
-  * PostgreSQL, MySQL, Oracle, DB2, ...
-* NoSQL scalable and highly available, but not transactional
-  * BigTable, Cassandra, ...
-* NewSQL scalable, highly available, transactional
-  * Spanner, CockroachDB, ...
-
---
-
-## History at Google
+## History (at Google)
 
 * &lt;2004: SQL (sharding, ...)
 * 2004: NoSQL (BigTable)
@@ -100,13 +52,12 @@ both their advantages:
   * platform semirelational database
   * fault-tolerant, transactional, scalable, fast (enough)
 * but simpler than Spanner
+  * time signal not central to design - no hardware req'd
   * non-locking distributed transactions
   * simple homogenous infrastructure
-  * no hardware requirements
 * and OpenSource
   * this stuff is hard - trust nobody
   * see: [Jepsen series](https://github.com/aphyr/jepsen)
-
 
 ---
 
@@ -123,7 +74,7 @@ both their advantages:
 
 --
 
-![Cockroach Architecture](images/arch.png "Architecture")
+![Cockroach Architecture](images/archstack.png "Architecture")
 
 --
 
